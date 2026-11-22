@@ -1,9 +1,13 @@
 package com.gwhitemore.zentv
 
+import android.content.Context
+import android.graphics.Color
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.gwhitemore.zentv.databinding.ItemAppBinding
 
@@ -13,7 +17,7 @@ class AppAdapter(
     private val onAppLongClick: (AppInfo) -> Unit
 ) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
-    private val interpolator = DecelerateInterpolator(1.5f)
+    private val springInterpolator = DecelerateInterpolator(1.8f)
     var focusedPosition: Int = 0
         private set
 
@@ -59,29 +63,65 @@ class AppAdapter(
                 true
             }
 
-            // Remote Focus Animation
+            // Apple TV tvOS Style Focus and Momentum Centering
             binding.cardContainer.setOnFocusChangeListener { view, hasFocus ->
                 if (hasFocus) {
                     focusedPosition = position
                     binding.tvAppTitle.isSelected = true
+
+                    // Apple TV: Luminous white plaque with crisp dark title
+                    binding.tvAppTitle.setTextColor(Color.parseColor("#0B0F19"))
+
                     view.animate()
-                        .scaleX(1.14f)
-                        .scaleY(1.14f)
-                        .translationZ(12f)
-                        .setDuration(160)
-                        .setInterpolator(interpolator)
+                        .scaleX(1.18f)
+                        .scaleY(1.18f)
+                        .translationZ(20f)
+                        .setDuration(180)
+                        .setInterpolator(springInterpolator)
                         .start()
+
+                    // Glides the focused app card smoothly to the center of the screen
+                    val rv = view.parent as? RecyclerView
+                    rv?.let { recyclerView ->
+                        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
+                        layoutManager?.let { lm ->
+                            val scroller = CenterSmoothScroller(view.context)
+                            scroller.targetPosition = position
+                            lm.startSmoothScroll(scroller)
+                        }
+                    }
                 } else {
                     binding.tvAppTitle.isSelected = false
+                    // Normal state: translucent frosted glass with white text
+                    binding.tvAppTitle.setTextColor(Color.parseColor("#E6FFFFFF"))
+
                     view.animate()
                         .scaleX(1.0f)
                         .scaleY(1.0f)
                         .translationZ(0f)
                         .setDuration(160)
-                        .setInterpolator(interpolator)
+                        .setInterpolator(springInterpolator)
                         .start()
                 }
             }
+        }
+    }
+
+    // Apple TV Weighted Center Scroller
+    class CenterSmoothScroller(context: Context) : LinearSmoothScroller(context) {
+        override fun calculateDtToFit(
+            viewStart: Int,
+            viewEnd: Int,
+            boxStart: Int,
+            boxEnd: Int,
+            snapPreference: Int
+        ): Int {
+            return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2)
+        }
+
+        override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+            // Smooth Apple TV inertia glide speed
+            return 0.18f
         }
     }
 }

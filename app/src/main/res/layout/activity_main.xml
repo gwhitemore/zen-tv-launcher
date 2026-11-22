@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:background="@color/bg_dark">
 
-    <!-- Background Wallpaper -->
+    <!-- High-Res Wallpaper (Bing Nature or Gradient) -->
     <ImageView
         android:id="@+id/ivWallpaper"
         android:layout_width="0dp"
@@ -21,33 +21,35 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:ignore="ContentDescription" />
 
-    <!-- Ambient Scrim Vignette -->
+    <!-- Cinema Grade Glass Vignette Overlay -->
     <View
         android:id="@+id/vScrim"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@drawable/scrim_overlay"
+        android:background="@drawable/scrim_cinematic"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Top Right Settings / Wallpaper Button -->
+    <!-- Top Right Frosted Glass Settings Button -->
     <ImageButton
         android:id="@+id/btnSettings"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="48dp"
-        android:background="@drawable/focus_settings_bg"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="52dp"
+        android:background="@drawable/bg_glass_pill"
         android:contentDescription="@string/settings"
         android:focusable="true"
+        android:padding="9dp"
+        android:scaleType="fitCenter"
         android:nextFocusDown="@id/rvApps"
         android:src="@drawable/ic_settings"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Center Clock and Date Container -->
+    <!-- Center Apple TV Clock Container -->
     <LinearLayout
         android:id="@+id/clockContainer"
         android:layout_width="wrap_content"
@@ -58,9 +60,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.55">
+        app:layout_constraintVertical_bias="0.52">
 
-        <!-- Modern Digital Clock in the Middle -->
+        <!-- Modern Apple TV Thin Digital Clock -->
         <TextClock
             android:id="@+id/textClock"
             android:layout_width="wrap_content"
@@ -68,42 +70,47 @@
             android:fontFamily="sans-serif-thin"
             android:format12Hour="h:mm"
             android:format24Hour="HH:mm"
-            android:textColor="@color/text_primary"
-            android:textSize="96sp"
-            android:shadowColor="#80000000"
+            android:textColor="#FFFFFF"
+            android:textSize="108sp"
+            android:shadowColor="#99000000"
             android:shadowDx="0"
-            android:shadowDy="6"
-            android:shadowRadius="16" />
+            android:shadowDy="8"
+            android:shadowRadius="20" />
 
-        <!-- Date under the Clock -->
+        <!-- Apple TV Frosted Glass Date Badge -->
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-4dp"
-            android:fontFamily="sans-serif-light"
+            android:layout_marginTop="-2dp"
+            android:background="@drawable/bg_glass_pill"
+            android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.08"
-            android:textColor="@color/text_secondary"
-            android:textSize="20sp"
+            android:paddingStart="22dp"
+            android:paddingEnd="22dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textColor="#F0FFFFFF"
+            android:textSize="15sp"
             android:shadowColor="#80000000"
             android:shadowDx="0"
-            android:shadowDy="3"
-            android:shadowRadius="8"
+            android:shadowDy="2"
+            android:shadowRadius="6"
             tools:text="Sunday, November 22" />
 
     </LinearLayout>
 
-    <!-- App Ribbon (Horizontal Single Row) -->
+    <!-- Apple TV Horizontal App Ribbon -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvApps"
         android:layout_width="0dp"
-        android:layout_height="180dp"
-        android:layout_marginBottom="44dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="36dp"
         android:clipToPadding="false"
         android:descendantFocusability="afterDescendants"
         android:orientation="horizontal"
-        android:paddingStart="64dp"
-        android:paddingEnd="64dp"
+        android:paddingStart="80dp"
+        android:paddingEnd="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -113,9 +120,11 @@
         android:id="@+id/tvEmpty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_pill"
+        android:padding="16dp"
         android:text="@string/no_apps_found"
-        android:textColor="@color/text_muted"
-        android:textSize="18sp"
+        android:textColor="#B3FFFFFF"
+        android:textSize="16sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/rvApps"
         app:layout_constraintEnd_toEndOf="@+id/rvApps"
