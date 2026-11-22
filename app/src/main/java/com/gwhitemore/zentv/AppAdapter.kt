@@ -14,7 +14,8 @@ import com.gwhitemore.zentv.databinding.ItemAppBinding
 class AppAdapter(
     private var apps: List<AppInfo>,
     private val onAppClick: (AppInfo) -> Unit,
-    private val onAppLongClick: (AppInfo) -> Unit
+    private val onAppLongClick: (AppInfo) -> Unit,
+    private val onAppFocus: ((AppInfo, Int) -> Unit)? = null
 ) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     private val springInterpolator = DecelerateInterpolator(1.8f)
@@ -63,7 +64,7 @@ class AppAdapter(
                 true
             }
 
-            // Apple TV tvOS Style Focus and Momentum Centering
+            // Apple TV tvOS Style Focus, Ambient Glow & Momentum Centering
             binding.cardContainer.setOnFocusChangeListener { view, hasFocus ->
                 if (hasFocus) {
                     focusedPosition = position
@@ -79,6 +80,8 @@ class AppAdapter(
                         .setDuration(180)
                         .setInterpolator(springInterpolator)
                         .start()
+
+                    onAppFocus?.invoke(app, position)
 
                     // Glides the focused app card smoothly to the center of the screen
                     val rv = view.parent as? RecyclerView

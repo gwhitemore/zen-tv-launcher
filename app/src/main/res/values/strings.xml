@@ -15,4 +15,9 @@
     <string name="no_apps_found">No apps found</string>
     <string name="clock_format_12">h:mm</string>
     <string name="clock_format_24">HH:mm</string>
+    <string name="inputs">Inputs</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="good_morning">GOOD MORNING</string>
+    <string name="good_afternoon">GOOD AFTERNOON</string>
+    <string name="good_evening">GOOD EVENING</string>
 </resources>

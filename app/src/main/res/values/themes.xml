@@ -12,4 +12,23 @@
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
+
+    <!-- tvOS Frosted Glass Top Button Pill -->
+    <style name="TopButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">38dp</item>
+        <item name="android:layout_marginStart">10dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">18dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/pill_bg</item>
+        <item name="android:textColor">@color/pill_text</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:drawableTint">@color/pill_text</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
 </resources>

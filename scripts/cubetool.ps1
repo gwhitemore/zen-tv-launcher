@@ -119,22 +119,48 @@ function Debloat-Safe {
     $target = "$ip`:5555"
     & $adb connect $target | Out-Null
 
-    # Bloatware targets (Amazon Kids, Shopping, miniTV, Photos, Telemetry, Ads)
+    # Comprehensive Bloatware Database (Inspired by cleanyourtv & Fire OS audits)
     $bloatList = @(
-        @{ Pkg = "com.amazon.tahoe";                Desc = "Amazon Kids / FreeTime" },
-        @{ Pkg = "com.amazon.shoptv.client";        Desc = "Amazon Live Shopping Client" },
-        @{ Pkg = "com.amazon.shoptv.firetv.client"; Desc = "Amazon Shopping Fire TV Client" },
-        @{ Pkg = "com.amazon.minitv.android.app";   Desc = "Amazon miniTV" },
-        @{ Pkg = "com.amazon.bueller.photos";       Desc = "Amazon Photos Background Sync" },
-        @{ Pkg = "com.amazon.firebat";              Desc = "Freevee / Prime Video Ad Streamer (115MB RAM)" },
-        @{ Pkg = "com.amazon.venezia";              Desc = "Amazon Appstore Background Services (60MB RAM)" },
-        @{ Pkg = "com.amazon.tv.livetv";            Desc = "Amazon Live TV Guide Crawler (35MB RAM)" },
-        @{ Pkg = "com.amazon.ftv.screensaver";      Desc = "Amazon Sponsored Screensaver" },
-        @{ Pkg = "com.amazon.client.metrics";       Desc = "Amazon Telemetry & Click Tracker" },
-        @{ Pkg = "com.amazon.tcomm";                Desc = "Amazon Telemetry Network Daemon" },
-        @{ Pkg = "com.amazon.ceviche";              Desc = "Sponsored Ad & Video Carousel Preloader" },
-        @{ Pkg = "com.amazon.device.sale.service";  Desc = "Amazon In-App Sales & Shopping Daemon" },
-        @{ Pkg = "com.amazon.avod.thirdpartyclient";Desc = "Amazon Video Ad Injector" }
+        # Telemetry, Metrics & Analytics
+        @{ Pkg = "com.amazon.client.metrics";          Desc = "Amazon Telemetry & Click Tracker" },
+        @{ Pkg = "com.amazon.client.metrics.api";      Desc = "Amazon Metrics API Client" },
+        @{ Pkg = "com.amazon.tcomm";                   Desc = "Amazon Telemetry Network Daemon" },
+        @{ Pkg = "com.amazon.tv.fw.metrics";           Desc = "Fire TV Framework Metrics" },
+        @{ Pkg = "com.amazon.wirelessmetrics.service"; Desc = "Amazon Wi-Fi Telemetry Service" },
+        @{ Pkg = "com.amazon.perfcollection";          Desc = "Performance Analytics Collector" },
+        @{ Pkg = "com.amazon.perfc";                   Desc = "Amazon Profiling Client" },
+        @{ Pkg = "com.amazon.dp.logger";               Desc = "Device Platform Event Logger" },
+        @{ Pkg = "com.amazon.ceviche";                 Desc = "Sponsored Ad & Video Carousel Preloader" },
+        @{ Pkg = "com.amazon.tv.developer.dataservice";Desc = "Content Personalization Tracker" },
+        @{ Pkg = "com.amazon.livedeviceservice";       Desc = "Live Device Telemetry Daemon" },
+        @{ Pkg = "com.amazon.privacypassservice";      Desc = "Privacy Pass Token Service" },
+        @{ Pkg = "com.amazon.wifilocker";              Desc = "Wi-Fi Passwords Cloud Sync" },
+        @{ Pkg = "com.amazon.tv.acr";                  Desc = "Automatic Content Recognition (Screen Spy)" },
+
+        # Ads, Sponsored Rows, Recommendations & Shopping
+        @{ Pkg = "com.amazon.kso.blackbird";           Desc = "Launcher Real-Time Ad Bidding Engine" },
+        @{ Pkg = "com.amazon.sneakpeek";               Desc = "Sponsored Sneak Peek Video Previews" },
+        @{ Pkg = "com.amazon.hybridadidservice";       Desc = "Advertising ID Tracking Service" },
+        @{ Pkg = "com.amazon.providers.contentsupport";Desc = "Content Support Ad Injector" },
+        @{ Pkg = "com.amazon.tv.easyupgrade";          Desc = "Fire TV Upgrade Commercials" },
+        @{ Pkg = "com.amazon.shoptv.client";           Desc = "Amazon Live Shopping Client" },
+        @{ Pkg = "com.amazon.shoptv.firetv.client";    Desc = "Amazon Shopping Fire TV Client" },
+        @{ Pkg = "com.amazon.hedwig";                  Desc = "Fire TV Ad Channels Daemon" },
+        @{ Pkg = "com.amazon.gamehub";                 Desc = "Luna Games Promo Cards" },
+        @{ Pkg = "com.amazon.systemnotices";           Desc = "Amazon System Marketing Notices" },
+        @{ Pkg = "com.amazon.tv.releasenotes";         Desc = "Promotional Release Notes" },
+        @{ Pkg = "com.amazon.uxnotification";          Desc = "UX Promo Popups" },
+        @{ Pkg = "com.amazon.device.sale.service";     Desc = "Amazon In-App Sales & Shopping Daemon" },
+        @{ Pkg = "com.amazon.avod.thirdpartyclient";   Desc = "Third-Party Video Ad Injector" },
+        @{ Pkg = "com.amazon.firebat";                 Desc = "Freevee / Prime Video 115MB Ad Streamer" },
+        @{ Pkg = "com.amazon.ftv.screensaver";         Desc = "Amazon Sponsored Screensaver" },
+
+        # Preloaded Bloatware Apps
+        @{ Pkg = "com.amazon.tahoe";                   Desc = "Amazon Kids / FreeTime" },
+        @{ Pkg = "com.amazon.bueller.music";           Desc = "Amazon Music Background Sync" },
+        @{ Pkg = "com.amazon.bueller.photos";          Desc = "Amazon Photos Background Sync" },
+        @{ Pkg = "com.amazon.minitv.android.app";      Desc = "Amazon miniTV Ad Client" },
+        @{ Pkg = "com.amazon.tv.livetv";               Desc = "Live TV Guide Ad Crawler (35MB RAM)" }
     )
 
     Write-Host "`n========================================================" -ForegroundColor Yellow

@@ -1,13 +1,22 @@
 package com.gwhitemore.zentv
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
+import android.app.ActivityManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
+import android.media.tv.TvContract
+import android.net.ConnectivityManager
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.provider.Settings
-import android.view.KeyEvent
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -18,6 +27,7 @@ import com.gwhitemore.zentv.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -30,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: AppAdapter
 
     private var currentApps: List<AppInfo> = emptyList()
+    private var currentGlowColor: Int = Color.TRANSPARENT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,9 +52,9 @@ class MainActivity : AppCompatActivity() {
         wallpaperEngine = WallpaperEngine(this)
 
         setupImmersiveMode()
-        setupClockAndDate()
+        setupHeader()
+        setupTopShelf()
         setupRecyclerView()
-        setupSettingsButton()
         applyWallpaper()
     }
 
@@ -51,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         overridePendingTransition(0, 0)
         setupImmersiveMode()
-        updateDate()
+        updateHeaderInfo()
         refreshApps()
     }
 
@@ -65,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         setIntent(intent)
         overridePendingTransition(0, 0)
         setupImmersiveMode()
-        // Focus first app when Home is pressed
+        // Focus first app card when Home button is pressed
         binding.rvApps.post {
             val firstHolder = binding.rvApps.findViewHolderForAdapterPosition(0)
             firstHolder?.itemView?.requestFocus()
@@ -83,9 +94,10 @@ class MainActivity : AppCompatActivity() {
             )
     }
 
-    private fun setupClockAndDate() {
-        updateDate()
-        // Format clock according to settings or system default
+    private fun setupHeader() {
+        updateHeaderInfo()
+
+        // Clock Format
         val format = if (prefs.use24Hour) {
             getString(R.string.clock_format_24)
         } else {
@@ -93,18 +105,65 @@ class MainActivity : AppCompatActivity() {
         }
         binding.textClock.format12Hour = format
         binding.textClock.format24Hour = format
+
+        // Button Click Handlers
+        binding.btnInputs.setOnClickListener {
+            showInputsDialog()
+        }
+
+        binding.btnWifi.setOnClickListener {
+            openWifiSettings()
+        }
+
+        binding.btnSettings.setOnClickListener {
+            showLauncherSettingsDialog()
+        }
     }
 
-    private fun updateDate() {
+    private fun updateHeaderInfo() {
+        // Dynamic greeting based on time of day
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        binding.tvGreeting.text = when (hour) {
+            in 5..11 -> getString(R.string.good_morning)
+            in 12..16 -> getString(R.string.good_afternoon)
+            else -> getString(R.string.good_evening)
+        }
+
+        // Formatted uppercase date
         val dateFormat = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
         binding.tvDate.text = dateFormat.format(Date())
+
+        // Live RAM stats
+        try {
+            val mi = ActivityManager.MemoryInfo()
+            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            am.getMemoryInfo(mi)
+            val freeMb = mi.availMem / (1024 * 1024)
+            binding.tvStats.text = "RAM: ${freeMb} MB FREE · ZERO ADS · FIRE OS DEBLOATED"
+        } catch (e: Exception) {
+            binding.tvStats.text = "CLEAN & DEBLOATED · ZERO ADS"
+        }
+
+        // Live Wi-Fi SSID
+        binding.btnWifi.text = getConnectedWifiName()
+    }
+
+    private fun setupTopShelf() {
+        binding.tvHeroName.text = getString(R.string.app_name)
+        binding.tvHeroMeta.text = "Fire OS Clean Launcher"
     }
 
     private fun setupRecyclerView() {
         adapter = AppAdapter(
             apps = emptyList(),
             onAppClick = { app -> launchApp(app) },
-            onAppLongClick = { app -> showAppOptionsDialog(app) }
+            onAppLongClick = { app -> showAppOptionsDialog(app) },
+            onAppFocus = { app, position ->
+                binding.tvHeroName.text = app.label
+                binding.tvHeroMeta.text = if (app.isPinned) "Pinned Favorite · Installed" else "Application · Installed"
+                val vibrantColor = ColorExtractor.extractVividColor(app.icon)
+                animateAmbientGlow(vibrantColor)
+            }
         )
 
         binding.rvApps.layoutManager = LinearLayoutManager(
@@ -115,10 +174,140 @@ class MainActivity : AppCompatActivity() {
         binding.rvApps.adapter = adapter
     }
 
-    private fun setupSettingsButton() {
-        binding.btnSettings.setOnClickListener {
-            showLauncherSettingsDialog()
+    private fun animateAmbientGlow(targetColor: Int) {
+        val startColor = currentGlowColor
+        currentGlowColor = targetColor
+
+        val animator = ValueAnimator.ofObject(ArgbEvaluator(), startColor, targetColor)
+        animator.duration = 240
+        animator.addUpdateListener { va ->
+            val color = va.animatedValue as Int
+            // Radial glow behind the top shelf and cards
+            val centerAlpha = 70 // subtle, elegant luminescence
+            val centerColor = Color.argb(centerAlpha, Color.red(color), Color.green(color), Color.blue(color))
+
+            val displayMetrics = resources.displayMetrics
+            val gradient = GradientDrawable().apply {
+                gradientType = GradientDrawable.RADIAL_GRADIENT
+                gradientRadius = displayMetrics.widthPixels * 0.70f
+                setGradientCenter(0.5f, 0.72f)
+                colors = intArrayOf(centerColor, Color.TRANSPARENT)
+            }
+            binding.vAmbientGlow.background = gradient
+            binding.vAmbientGlow.alpha = 1.0f
         }
+        animator.start()
+    }
+
+    private fun getConnectedWifiName(): String {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork = cm.activeNetworkInfo
+            if (activeNetwork != null && activeNetwork.isConnected) {
+                if (activeNetwork.type == ConnectivityManager.TYPE_ETHERNET) {
+                    return "Ethernet"
+                }
+                val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                val info = wm.connectionInfo
+                if (info != null) {
+                    var ssid = info.ssid ?: ""
+                    if (ssid.startsWith("\"") && ssid.endsWith("\"") && ssid.length > 2) {
+                        ssid = ssid.substring(1, ssid.length - 1)
+                    }
+                    if (ssid.isNotEmpty() && ssid != "<unknown ssid>") {
+                        return ssid
+                    }
+                }
+                return getString(R.string.wifi)
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error reading Wi-Fi", e)
+        }
+        return getString(R.string.wifi)
+    }
+
+    private fun openWifiSettings() {
+        try {
+            val intent = Intent(Settings.ACTION_WIFI_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            try {
+                startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                })
+            } catch (e2: Exception) {
+                Toast.makeText(this, "Could not open Network Settings", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showInputsDialog() {
+        val options = arrayOf(
+            "HDMI Passthrough Input",
+            "Live TV & Channel Guide",
+            "Display & Sounds Settings",
+            "Equipment Control"
+        )
+        AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+            .setTitle(getString(R.string.inputs))
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                component = ComponentName(
+                                    "com.amazon.franktvinput",
+                                    "com.amazon.franktvinput.playback.TvPlaybackActivity"
+                                )
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            try {
+                                startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS))
+                            } catch (e2: Exception) {
+                                Toast.makeText(this, "HDMI Input not active", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                    1 -> {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, TvContract.buildChannelsUriForInput(null)).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(this, "Live TV input unavailable", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    2 -> {
+                        try {
+                            startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            })
+                        } catch (e: Exception) {
+                            startActivity(Intent(Settings.ACTION_SETTINGS))
+                        }
+                    }
+                    3 -> {
+                        try {
+                            val intent = Intent().apply {
+                                component = ComponentName(
+                                    "com.amazon.tv.devicecontrolsettings",
+                                    "com.amazon.tv.devicecontrolsettings.DeviceControlSettingsActivity"
+                                )
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            startActivity(Intent(Settings.ACTION_SETTINGS))
+                        }
+                    }
+                }
+            }
+            .show()
     }
 
     private fun refreshApps() {
@@ -132,7 +321,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 binding.tvEmpty.visibility = View.GONE
                 // Give focus to the first item if nothing currently focused
-                if (binding.rvApps.findFocus() == null && binding.btnSettings.findFocus() == null) {
+                if (binding.rvApps.findFocus() == null &&
+                    binding.btnSettings.findFocus() == null &&
+                    binding.btnWifi.findFocus() == null &&
+                    binding.btnInputs.findFocus() == null) {
                     binding.rvApps.post {
                         val firstHolder = binding.rvApps.findViewHolderForAdapterPosition(0)
                         firstHolder?.itemView?.requestFocus()
@@ -225,7 +417,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     2 -> {
                         prefs.use24Hour = !prefs.use24Hour
-                        setupClockAndDate()
+                        val format = if (prefs.use24Hour) getString(R.string.clock_format_24) else getString(R.string.clock_format_12)
+                        binding.textClock.format12Hour = format
+                        binding.textClock.format24Hour = format
                     }
                     3 -> {
                         startActivity(Intent(Settings.ACTION_SETTINGS).apply {
@@ -267,8 +461,6 @@ class MainActivity : AppCompatActivity() {
                         applyWallpaper()
                     }
                     4 -> {
-                        val defaultCustom = "/sdcard/Download/wallpaper.jpg"
-                        prefs.customWallpaperPath = defaultCustom
                         prefs.selectedWallpaper = PreferencesManager.WALLPAPER_CUSTOM
                         applyWallpaper()
                     }
@@ -280,20 +472,18 @@ class MainActivity : AppCompatActivity() {
     private fun applyWallpaper() {
         when (prefs.selectedWallpaper) {
             PreferencesManager.WALLPAPER_BING -> {
-                // Initial fallback gradient while loading
-                binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
                 lifecycleScope.launch {
-                    val (bitmap, title) = wallpaperEngine.getDailyBingWallpaper()
+                    val pair = wallpaperEngine.getDailyBingWallpaper()
+                    val bitmap = pair.first
                     if (bitmap != null) {
-                        binding.ivWallpaper.animate().alpha(0.3f).setDuration(150).withEndAction {
-                            binding.ivWallpaper.setImageDrawable(BitmapDrawable(resources, bitmap))
-                            binding.ivWallpaper.animate().alpha(1.0f).setDuration(300).start()
-                        }.start()
-                        if (title != null) {
-                            Toast.makeText(this@MainActivity, "Bing: $title", Toast.LENGTH_SHORT).show()
-                        }
+                        binding.ivWallpaper.setImageBitmap(bitmap)
+                    } else {
+                        binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
                     }
                 }
+            }
+            PreferencesManager.WALLPAPER_AURORA -> {
+                binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
             }
             PreferencesManager.WALLPAPER_SPACE -> {
                 binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_space)
@@ -302,49 +492,15 @@ class MainActivity : AppCompatActivity() {
                 binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_cyber)
             }
             PreferencesManager.WALLPAPER_CUSTOM -> {
-                val path = prefs.customWallpaperPath ?: "/sdcard/Download/wallpaper.jpg"
-                val file = File(path)
-                if (file.exists()) {
-                    try {
-                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                        if (bitmap != null) {
-                            binding.ivWallpaper.setImageDrawable(BitmapDrawable(resources, bitmap))
-                            return
-                        }
-                    } catch (e: Exception) {
-                        // Fallback
-                    }
-                }
-                binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
-            }
-            else -> {
-                binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
-            }
-        }
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        // TV Remote Navigation Overrides
-        when (keyCode) {
-            KeyEvent.KEYCODE_BACK -> {
-                // Prevent exiting launcher on back press
-                return true
-            }
-            KeyEvent.KEYCODE_MENU -> {
-                // Menu button on remote opens app options for currently focused app
-                val focusedChild = binding.rvApps.findFocus()
-                if (focusedChild != null) {
-                    val pos = adapter.focusedPosition
-                    if (pos in currentApps.indices) {
-                        showAppOptionsDialog(currentApps[pos])
-                        return true
-                    }
+                val customPath = prefs.customWallpaperPath ?: "/sdcard/Download/wallpaper.jpg"
+                val customFile = File(customPath)
+                if (customFile.exists()) {
+                    val bitmap = BitmapFactory.decodeFile(customFile.absolutePath)
+                    binding.ivWallpaper.setImageBitmap(bitmap)
                 } else {
-                    showLauncherSettingsDialog()
-                    return true
+                    binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
                 }
             }
         }
-        return super.onKeyDown(keyCode, event)
     }
 }

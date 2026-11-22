@@ -8,20 +8,27 @@ Built to replace bloated, ad-ridden stock interfaces with pure simplicity, speed
 
 ## ✨ Features
 
-- **Large Center Clock & Date:** Floating minimalist digital clock and date centered on screen. Supports both 12-hour (`h:mm`) and 24-hour (`HH:mm`) formats.
-- **Minimalist App Ribbon (Option A):** A sleek, horizontal scrolling row of your installed apps across the lower third of the screen.
-- **Both Official & Sideloaded Apps:** Automatically scans standard Android TV apps *and* sideloaded mobile APKs (e.g. SmartTube, Kodi, Downloader) so nothing is hidden.
-- **Fire TV Remote D-Pad Navigation:**
-  - Silky smooth focus animations (subtle 1.14x scaling + glowing cyan border + title marquee).
-  - Press **Select** to launch.
-  - Press **Menu** (or long-press Select) to pin apps to the front, hide unwanted apps, or inspect app details.
-- **Wallpaper Engine:**
-  - Built-in wallpapers: Aurora Borealis (Dark Blue), Deep Space (Pure OLED Black), and Midnight Cyber (Moody Purple).
+- **Apple TV / tvOS Frosted Glass Styling:** High-contrast illuminated glass cards with centered momentum inertia gliding inspired by Apple TV and CleanYourTV.
+- **Dynamic Ambient Color Glow:** High-performance real-time color extractor samples the focused app's vibrant brand colors (e.g. magenta for BBC iPlayer, red for Netflix, blue for Disney+) and bathes the background in a subtle radial ambient glow.
+- **Top Bar & Dynamic Greeting:** Time-of-day greeting (`GOOD MORNING` / `GOOD AFTERNOON` / `GOOD EVENING`), minimalist 50sp thin typography clock, uppercase date, and live device debloat stats badge (`RAM: X MB FREE · ZERO ADS · FIRE OS DEBLOATED`).
+- **Frosted Quick-Access Top Pills:**
+  - **Inputs:** Fire TV Cube HDMI passthrough, TV tuner, and equipment control.
+  - **Wi-Fi:** Displays connected Wi-Fi SSID in real-time with one-click network settings.
+  - **Settings:** Instant access to device and display preferences.
+- **Dynamic Top Shelf Hero:** Smoothly updates to the active app name (44sp light) and category metadata as you glide across the dock.
+- **Bing Daily 4K Wallpaper Engine:**
+  - Automatically fetches the world's most stunning daily landscape & nature photography in high resolution from Bing.
+  - Offline built-in themes: Aurora Borealis, Deep Space (Pure OLED Black), and Midnight Cyber.
   - Custom wallpaper support: drop any image into `/sdcard/Download/wallpaper.jpg`.
-  - Ambient vignette scrim ensuring text and icons are 100% legible on any background.
+  - Cinematic dark vignetting ensures text, clocks, and cards remain razor-sharp and legible.
+- **Hardware Home & Boot Interceptor:**
+  - Built-in `ZenAccessibilityService` immediately intercepts stock Amazon launcher transitions with `FLAG_ACTIVITY_NO_ANIMATION` for instantaneous zero-flicker return.
+  - Auto-launches on cold boot and wake (`BOOT_COMPLETED` & `QUICKBOOT_POWERON`).
+- **35-Package Brick-Proof Debloater:**
+  - Automated PowerShell tool (`cubetool.ps1`) to disable telemetry, ACR tracking (`com.amazon.tv.acr`), ad bidding (`com.amazon.kso.blackbird`), Freevee ads (`com.amazon.firebat`), Live Shopping, Kids, and sponsored feeds using non-destructive AppOps & user-space freezing.
 - **Pure Zero-Bloat:**
-  - **Size:** ~3.3 MB APK.
-  - **RAM Footprint:** ~20 MB (compared to Amazon's 1,400 MB).
+  - **Size:** ~3.8 MB APK.
+  - **RAM Footprint:** ~25 MB (compared to Amazon's 1,400+ MB).
   - **100% Free & Open Source:** Zero telemetry, zero tracking, zero in-app purchases, and no Google Play Services dependency.
 
 ---
