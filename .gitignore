@@ -1,0 +1,21 @@
+# Android and Gradle build files
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Output APKs in build directories (we can keep release APKs or artifacts if desired, but build/ should be ignored)
+app/build/
+
+# Keystores
+*.jks
+*.keystore
+
+# Temporary and log files
+*.log

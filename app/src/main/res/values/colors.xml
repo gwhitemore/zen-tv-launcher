@@ -1,0 +1,33 @@
+<resources>
+    <!-- Backgrounds & Overlays -->
+    <color name="bg_dark">#0A0D14</color>
+    <color name="scrim_top">#B3000000</color>
+    <color name="scrim_bottom">#CC05070B</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#B3FFFFFF</color>
+    <color name="text_muted">#70FFFFFF</color>
+
+    <!-- TV Remote Focus & Accent Colors -->
+    <color name="card_normal">#1AFFFFFF</color>
+    <color name="card_focused">#40FFFFFF</color>
+    <color name="focus_border">#00E5FF</color>
+    <color name="focus_glow">#4D00E5FF</color>
+    <color name="accent_cyan">#00E5FF</color>
+    <color name="accent_purple">#BB86FC</color>
+
+    <!-- Gradient Wallpapers -->
+    <color name="aurora_start">#061727</color>
+    <color name="aurora_mid">#092C3E</color>
+    <color name="aurora_end">#05111B</color>
+
+    <color name="space_start">#040508</color>
+    <color name="space_mid">#0D111A</color>
+    <color name="space_end">#020305</color>
+
+    <color name="cyber_start">#160826</color>
+    <color name="cyber_mid">#280F45</color>
+    <color name="cyber_end">#090412</color>
+</resources>

@@ -1,0 +1,51 @@
+name: Build & Release ZenTV Launcher APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build APK with Gradle
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Rename APK for release
+        run: |
+          mkdir -p release-artifacts
+          cp app/build/outputs/apk/release/app-release-unsigned.apk release-artifacts/ZenTV-Launcher.apk || cp app/build/outputs/apk/release/*.apk release-artifacts/ZenTV-Launcher.apk || cp app/build/outputs/apk/debug/*.apk release-artifacts/ZenTV-Launcher.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: release-artifacts/ZenTV-Launcher.apk
+          name: Release ${{ github.ref_name }}
+          body: |
+            ### ZenTV Launcher for Fire TV & Android TV
+            - Ultra-clean minimalist ribbon layout
+            - Large center clock & date
+            - Smooth D-pad remote navigation
+            - 100% Free, Zero Ads, Zero Bloat
+          draft: false
+          prerelease: false

@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">ZenTV</string>
+    <string name="settings">Settings</string>
+    <string name="choose_wallpaper">Change Wallpaper</string>
+    <string name="wallpaper_gradient_aurora">Aurora Borealis (Dark)</string>
+    <string name="wallpaper_gradient_deep_space">Deep Space (OLED)</string>
+    <string name="wallpaper_gradient_sunset">Midnight Cyber (Purple)</string>
+    <string name="wallpaper_custom">Select Custom Image from Storage</string>
+    <string name="app_options">App Options</string>
+    <string name="launch_app">Launch</string>
+    <string name="favorite_app">Pin to Front</string>
+    <string name="unfavorite_app">Unpin</string>
+    <string name="hide_app">Hide App</string>
+    <string name="app_info">App Info</string>
+    <string name="no_apps_found">No apps found</string>
+    <string name="clock_format_12">h:mm</string>
+    <string name="clock_format_24">HH:mm</string>
+</resources>
