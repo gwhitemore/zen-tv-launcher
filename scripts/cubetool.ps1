@@ -109,9 +109,15 @@ function Install-ZenTV {
     & $adb -s $target shell cmd package set-home-activity com.gwhitemore.zentv/.MainActivity | Out-Null
 
     Write-Host "Activating ZenTV Hardware Home Button & Boot Interceptor..." -ForegroundColor Cyan
-    & $adb -s $target shell settings put secure enabled_accessibility_services com.gwhitemore.zentv/.ZenAccessibilityService
+    & $adb -s $target shell settings put secure enabled_accessibility_services com.gwhitemore.zentv/com.gwhitemore.zentv.ZenAccessibilityService
     & $adb -s $target shell settings put secure accessibility_enabled 1
     & $adb -s $target shell pm grant com.gwhitemore.zentv android.permission.WRITE_SECURE_SETTINGS 2>$null
+
+    Write-Host "Configuring ZenTV Bing Daily Screensaver (Replacing Amazon Screensaver & Photos)..." -ForegroundColor Cyan
+    & $adb -s $target shell settings put secure screensaver_components com.gwhitemore.zentv/.ZenDreamService
+    & $adb -s $target shell settings put secure screensaver_enabled 1
+    & $adb -s $target shell pm disable-user --user 0 com.amazon.ftv.screensaver 2>$null
+    & $adb -s $target shell pm disable-user --user 0 com.amazon.bueller.photos 2>$null
 
     Write-Host "Launching ZenTV Launcher on TV screen..." -ForegroundColor Green
     & $adb -s $target shell am start -n com.gwhitemore.zentv/.MainActivity
@@ -183,6 +189,9 @@ function Debloat-Safe {
             Write-Host "  -> Uninstalled for User 0 [SUCCESS]" -ForegroundColor Green
             continue
         }
+
+        # 1b. Attempt user-0 disable (freezes packages like screensaver and photos)
+        & $adb -s $target shell pm disable-user --user 0 $p 2>$null | Out-Null
 
         # 2. Apply persistent AppOps restrictions (survives powercycles in /data/system/appops.xml)
         & $adb -s $target shell cmd appops set $p RUN_IN_BACKGROUND ignore

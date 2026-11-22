@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF050508">
+
+    <!-- Screensaver 4K Daily Nature Wallpaper -->
+    <ImageView
+        android:id="@+id/ivDreamWallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@null" />
+
+    <!-- Dark Cinematic Vignette -->
+    <View
+        android:id="@+id/vDreamScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim_cinematic" />
+
+    <!-- Minimalist Bottom-Left Clock & Date -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="48dp"
+        android:layout_marginBottom="40dp"
+        android:orientation="vertical">
+
+        <TextClock
+            android:id="@+id/tcDreamClock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-thin"
+            android:format12Hour="h:mm"
+            android:format24Hour="HH:mm"
+            android:textColor="#F0FFFFFF"
+            android:textSize="54sp"
+            android:shadowColor="#80000000"
+            android:shadowRadius="12" />
+
+        <TextView
+            android:id="@+id/tvDreamDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.10"
+            android:textColor="#A0E0E0E0"
+            android:textSize="14sp"
+            android:shadowColor="#80000000"
+            android:shadowRadius="8" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.12"
+            android:text="BING DAILY NATURE · ZERO ADS"
+            android:textColor="#60FFFFFF"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+</FrameLayout>
