@@ -1,50 +1,84 @@
 package com.gwhitemore.zentv
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 
 class ZenAccessibilityService : AccessibilityService() {
 
-    override fun onKeyEvent(event: KeyEvent?): Boolean {
-        if (event == null) return false
+    private var lastLaunchTime = 0L
 
-        // Intercept physical remote HOME button at the lowest input layer
-        if (event.keyCode == KeyEvent.KEYCODE_HOME) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                launchZenTV()
-            }
-            // Return true to consume the key event! Amazon PhoneWindowManager never receives it!
-            return true
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        Log.i("ZenAccessibility", "ZenAccessibilityService CONNECTED!")
+
+        // Listen only to window changes to keep CPU usage minimal
+        val info = AccessibilityServiceInfo().apply {
+            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                         AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
+            flags = AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS or
+                    AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                    AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+            notificationTimeout = 20
         }
-
-        return super.onKeyEvent(event)
+        serviceInfo = info
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
+        val pkg = event.packageName?.toString() ?: ""
+        val cls = event.className?.toString() ?: ""
 
-        // Intercept if Amazon stock launcher attempts to take the window
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-            event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
-            val pkg = event.packageName?.toString() ?: return
+        // Intercept whenever Amazon launcher or starter takes over
+        val isAmazonHome = pkg.contains("amazon.tv.launcher") ||
+                           pkg.contains("firehomestarter") ||
+                           (pkg.contains("amazon") && cls.contains("HomeActivity"))
 
-            if (pkg == "com.amazon.tv.launcher" || pkg == "com.amazon.firehomestarter") {
-                launchZenTV()
-            }
+        if (isAmazonHome) {
+            Log.i("ZenAccessibility", "Amazon Home intercepted (pkg=$pkg, cls=$cls)! Returning to ZenTV...")
+            launchZenTV()
         }
     }
 
-    private fun launchZenTV() {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP
-            )
+    override fun onKeyEvent(event: KeyEvent?): Boolean {
+        if (event == null) return false
+
+        if (event.keyCode == KeyEvent.KEYCODE_HOME) {
+            Log.d("ZenAccessibility", "Intercepted KEYCODE_HOME action=${event.action}")
+            if (event.action == KeyEvent.ACTION_UP) {
+                launchZenTV()
+            }
+            return true // Consume HOME key event so Amazon framework doesn't get it
         }
-        startActivity(intent)
+        return super.onKeyEvent(event)
+    }
+
+    private fun launchZenTV() {
+        val now = System.currentTimeMillis()
+        if (now - lastLaunchTime < 100) {
+            return
+        }
+        lastLaunchTime = now
+
+        try {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                setAction(Intent.ACTION_MAIN)
+                addCategory(Intent.CATEGORY_HOME)
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_NO_ANIMATION
+                )
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("ZenAccessibility", "Failed to launch ZenTV", e)
+        }
     }
 
     override fun onInterrupt() {}

@@ -49,9 +49,27 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        overridePendingTransition(0, 0)
         setupImmersiveMode()
         updateDate()
         refreshApps()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        overridePendingTransition(0, 0)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        overridePendingTransition(0, 0)
+        setupImmersiveMode()
+        // Focus first app when Home is pressed
+        binding.rvApps.post {
+            val firstHolder = binding.rvApps.findViewHolderForAdapterPosition(0)
+            firstHolder?.itemView?.requestFocus()
+        }
     }
 
     private fun setupImmersiveMode() {
