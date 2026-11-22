@@ -2,7 +2,10 @@ package com.gwhitemore.zentv
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.PendingIntent
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
@@ -10,12 +13,12 @@ import android.view.accessibility.AccessibilityEvent
 class ZenAccessibilityService : AccessibilityService() {
 
     private var lastLaunchTime = 0L
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         Log.i("ZenAccessibility", "ZenAccessibilityService CONNECTED!")
 
-        // Listen only to window changes to keep CPU usage minimal
         val info = AccessibilityServiceInfo().apply {
             eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
                          AccessibilityEvent.TYPE_WINDOWS_CHANGED
@@ -33,7 +36,7 @@ class ZenAccessibilityService : AccessibilityService() {
         val pkg = event.packageName?.toString() ?: ""
         val cls = event.className?.toString() ?: ""
 
-        // Intercept whenever Amazon launcher or starter takes over
+        // Intercept whenever Amazon launcher takes over
         val isAmazonHome = pkg.contains("amazon.tv.launcher") ||
                            pkg.contains("firehomestarter") ||
                            (pkg.contains("amazon") && cls.contains("HomeActivity"))
@@ -52,33 +55,55 @@ class ZenAccessibilityService : AccessibilityService() {
             if (event.action == KeyEvent.ACTION_UP) {
                 launchZenTV()
             }
-            return true // Consume HOME key event so Amazon framework doesn't get it
+            return true
         }
         return super.onKeyEvent(event)
     }
 
     private fun launchZenTV() {
         val now = System.currentTimeMillis()
-        if (now - lastLaunchTime < 100) {
+        if (now - lastLaunchTime < 150) {
             return
         }
         lastLaunchTime = now
 
-        try {
-            val intent = Intent(this, MainActivity::class.java).apply {
-                setAction(Intent.ACTION_MAIN)
-                addCategory(Intent.CATEGORY_HOME)
-                addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_NO_ANIMATION
+        val triggerLaunch = {
+            try {
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    action = Intent.ACTION_MAIN
+                    addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION
+                    )
+                }
+                val pi = PendingIntent.getActivity(
+                    this,
+                    0,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
+                pi.send()
+            } catch (e: Exception) {
+                try {
+                    val intent = Intent(this, MainActivity::class.java).apply {
+                        action = Intent.ACTION_MAIN
+                        addFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                            Intent.FLAG_ACTIVITY_NO_ANIMATION
+                        )
+                    }
+                    startActivity(intent)
+                } catch (ex: Exception) {
+                    Log.e("ZenAccessibility", "Failed to launch ZenTV", ex)
+                }
             }
-            startActivity(intent)
-        } catch (e: Exception) {
-            Log.e("ZenAccessibility", "Failed to launch ZenTV", e)
         }
+
+        // Fire immediately and a short 80ms followup to defeat window animation lock
+        triggerLaunch()
+        mainHandler.postDelayed({ triggerLaunch() }, 80)
     }
 
     override fun onInterrupt() {}

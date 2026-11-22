@@ -88,7 +88,10 @@ function Install-ZenTV {
     $target = "$ip`:5555"
     & $adb connect $target | Out-Null
 
-    $apkPath = Resolve-Path "releases\ZenTV-Launcher-v1.0.0.apk" -ErrorAction SilentlyContinue
+    $apkPath = Resolve-Path "releases\ZenTV-Launcher-latest.apk" -ErrorAction SilentlyContinue
+    if (-not $apkPath) {
+        $apkPath = Resolve-Path "releases\ZenTV-Launcher-v1.1.0.apk" -ErrorAction SilentlyContinue
+    }
     if (-not $apkPath) {
         $apkPath = Resolve-Path "app\build\outputs\apk\release\app-release.apk" -ErrorAction SilentlyContinue
     }
