@@ -118,8 +118,13 @@ function Debloat-Safe {
     $target = "$ip`:5555"
     & $adb connect $target | Out-Null
 
-    # Bloatware targets (Amazon Telemetry, Ads, Shopping, Photos sync)
+    # Bloatware targets (Amazon Kids, Shopping, miniTV, Photos, Telemetry, Ads)
     $bloatList = @(
+        @{ Pkg = "com.amazon.tahoe";                Desc = "Amazon Kids / FreeTime" },
+        @{ Pkg = "com.amazon.shoptv.client";        Desc = "Amazon Live Shopping Client" },
+        @{ Pkg = "com.amazon.shoptv.firetv.client"; Desc = "Amazon Shopping Fire TV Client" },
+        @{ Pkg = "com.amazon.minitv.android.app";   Desc = "Amazon miniTV" },
+        @{ Pkg = "com.amazon.bueller.photos";       Desc = "Amazon Photos Background Sync" },
         @{ Pkg = "com.amazon.firebat";              Desc = "Freevee / Prime Video Ad Streamer (115MB RAM)" },
         @{ Pkg = "com.amazon.venezia";              Desc = "Amazon Appstore Background Services (60MB RAM)" },
         @{ Pkg = "com.amazon.tv.livetv";            Desc = "Amazon Live TV Guide Crawler (35MB RAM)" },
@@ -128,7 +133,6 @@ function Debloat-Safe {
         @{ Pkg = "com.amazon.tcomm";                Desc = "Amazon Telemetry Network Daemon" },
         @{ Pkg = "com.amazon.ceviche";              Desc = "Sponsored Ad & Video Carousel Preloader" },
         @{ Pkg = "com.amazon.device.sale.service";  Desc = "Amazon In-App Sales & Shopping Daemon" },
-        @{ Pkg = "com.amazon.bueller.photos";       Desc = "Amazon Photos Background Sync" },
         @{ Pkg = "com.amazon.avod.thirdpartyclient";Desc = "Amazon Video Ad Injector" }
     )
 

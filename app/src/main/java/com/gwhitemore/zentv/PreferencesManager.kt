@@ -8,6 +8,7 @@ class PreferencesManager(context: Context) {
         context.getSharedPreferences("zentv_prefs", Context.MODE_PRIVATE)
 
     companion object {
+        const val WALLPAPER_BING = "bing"
         const val WALLPAPER_AURORA = "aurora"
         const val WALLPAPER_SPACE = "space"
         const val WALLPAPER_CYBER = "cyber"
@@ -21,7 +22,7 @@ class PreferencesManager(context: Context) {
     }
 
     var selectedWallpaper: String
-        get() = prefs.getString(KEY_WALLPAPER, WALLPAPER_AURORA) ?: WALLPAPER_AURORA
+        get() = prefs.getString(KEY_WALLPAPER, WALLPAPER_BING) ?: WALLPAPER_BING
         set(value) = prefs.edit().putString(KEY_WALLPAPER, value).apply()
 
     var customWallpaperPath: String?

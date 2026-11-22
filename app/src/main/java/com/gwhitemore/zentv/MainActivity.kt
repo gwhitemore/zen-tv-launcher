@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var prefs: PreferencesManager
     private lateinit var appScanner: AppScanner
+    private lateinit var wallpaperEngine: WallpaperEngine
     private lateinit var adapter: AppAdapter
 
     private var currentApps: List<AppInfo> = emptyList()
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
         prefs = PreferencesManager(this)
         appScanner = AppScanner(this)
+        wallpaperEngine = WallpaperEngine(this)
 
         setupImmersiveMode()
         setupClockAndDate()
@@ -219,6 +221,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showWallpaperSelectionDialog() {
         val wallpapers = arrayOf(
+            "Bing Daily Nature Wallpaper (Automatic)",
             getString(R.string.wallpaper_gradient_aurora),
             getString(R.string.wallpaper_gradient_deep_space),
             getString(R.string.wallpaper_gradient_sunset),
@@ -230,18 +233,22 @@ class MainActivity : AppCompatActivity() {
             .setItems(wallpapers) { _, which ->
                 when (which) {
                     0 -> {
-                        prefs.selectedWallpaper = PreferencesManager.WALLPAPER_AURORA
+                        prefs.selectedWallpaper = PreferencesManager.WALLPAPER_BING
                         applyWallpaper()
                     }
                     1 -> {
-                        prefs.selectedWallpaper = PreferencesManager.WALLPAPER_SPACE
+                        prefs.selectedWallpaper = PreferencesManager.WALLPAPER_AURORA
                         applyWallpaper()
                     }
                     2 -> {
-                        prefs.selectedWallpaper = PreferencesManager.WALLPAPER_CYBER
+                        prefs.selectedWallpaper = PreferencesManager.WALLPAPER_SPACE
                         applyWallpaper()
                     }
                     3 -> {
+                        prefs.selectedWallpaper = PreferencesManager.WALLPAPER_CYBER
+                        applyWallpaper()
+                    }
+                    4 -> {
                         val defaultCustom = "/sdcard/Download/wallpaper.jpg"
                         prefs.customWallpaperPath = defaultCustom
                         prefs.selectedWallpaper = PreferencesManager.WALLPAPER_CUSTOM
@@ -254,6 +261,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun applyWallpaper() {
         when (prefs.selectedWallpaper) {
+            PreferencesManager.WALLPAPER_BING -> {
+                // Initial fallback gradient while loading
+                binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
+                lifecycleScope.launch {
+                    val (bitmap, title) = wallpaperEngine.getDailyBingWallpaper()
+                    if (bitmap != null) {
+                        binding.ivWallpaper.animate().alpha(0.3f).setDuration(150).withEndAction {
+                            binding.ivWallpaper.setImageDrawable(BitmapDrawable(resources, bitmap))
+                            binding.ivWallpaper.animate().alpha(1.0f).setDuration(300).start()
+                        }.start()
+                        if (title != null) {
+                            Toast.makeText(this@MainActivity, "Bing: $title", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
             PreferencesManager.WALLPAPER_SPACE -> {
                 binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_space)
             }
@@ -271,10 +294,9 @@ class MainActivity : AppCompatActivity() {
                             return
                         }
                     } catch (e: Exception) {
-                        // Fallback to default
+                        // Fallback
                     }
                 }
-                // Fallback if custom file not found
                 binding.ivWallpaper.setImageResource(R.drawable.bg_wallpaper_aurora)
             }
             else -> {
