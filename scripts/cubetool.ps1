@@ -101,6 +101,14 @@ function Install-ZenTV {
 
     Write-Host "`nStreaming $apkPath to $target..." -ForegroundColor Cyan
     & $adb -s $target install -r $apkPath
+
+    Write-Host "Registering ZenTV as Default Home Activity..." -ForegroundColor Cyan
+    & $adb -s $target shell cmd package set-home-activity com.gwhitemore.zentv/.MainActivity | Out-Null
+
+    Write-Host "Activating ZenTV Hardware Home Button & Boot Interceptor..." -ForegroundColor Cyan
+    & $adb -s $target shell settings put secure enabled_accessibility_services com.gwhitemore.zentv/.ZenAccessibilityService
+    & $adb -s $target shell settings put secure accessibility_enabled 1
+
     Write-Host "Launching ZenTV Launcher on TV screen..." -ForegroundColor Green
     & $adb -s $target shell am start -n com.gwhitemore.zentv/.MainActivity
 }
@@ -112,6 +120,10 @@ function Debloat-Safe {
 
     # Bloatware targets (Amazon Telemetry, Ads, Shopping, Photos sync)
     $bloatList = @(
+        @{ Pkg = "com.amazon.firebat";              Desc = "Freevee / Prime Video Ad Streamer (115MB RAM)" },
+        @{ Pkg = "com.amazon.venezia";              Desc = "Amazon Appstore Background Services (60MB RAM)" },
+        @{ Pkg = "com.amazon.tv.livetv";            Desc = "Amazon Live TV Guide Crawler (35MB RAM)" },
+        @{ Pkg = "com.amazon.ftv.screensaver";      Desc = "Amazon Sponsored Screensaver" },
         @{ Pkg = "com.amazon.client.metrics";       Desc = "Amazon Telemetry & Click Tracker" },
         @{ Pkg = "com.amazon.tcomm";                Desc = "Amazon Telemetry Network Daemon" },
         @{ Pkg = "com.amazon.ceviche";              Desc = "Sponsored Ad & Video Carousel Preloader" },

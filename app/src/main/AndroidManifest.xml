@@ -36,8 +36,8 @@
             android:screenOrientation="landscape"
             android:configChanges="keyboard|keyboardHidden|navigation">
 
-            <!-- Primary TV Launcher Filter -->
-            <intent-filter>
+            <!-- Primary TV Launcher Filter (Priority 1000 to beat Amazon's 950) -->
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -50,6 +50,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Hardware Home Button & Boot Interceptor Service -->
+        <service
+            android:name=".ZenAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
 
     </application>
 
