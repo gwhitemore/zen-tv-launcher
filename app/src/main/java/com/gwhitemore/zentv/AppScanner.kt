@@ -91,11 +91,21 @@ class AppScanner(private val context: Context) {
             )
         }
 
-        // 3. Sort: Pinned apps first (alphabetically), then unpinned apps (alphabetically)
-        val sortedList = appMap.values.sortedWith(
-            compareByDescending<AppInfo> { it.isPinned }
-                .thenBy { it.label.lowercase() }
-        )
+        // 3. Sort: Custom order if user rearranged, otherwise pinned then alphabetical
+        val customOrder = prefs.getCustomAppOrder()
+        val sortedList = if (customOrder.isNotEmpty()) {
+            val orderMap = customOrder.withIndex().associate { it.value to it.index }
+            appMap.values.sortedWith(
+                compareBy<AppInfo> { orderMap[it.packageName] ?: Int.MAX_VALUE }
+                    .thenByDescending { it.isPinned }
+                    .thenBy { it.label.lowercase() }
+            )
+        } else {
+            appMap.values.sortedWith(
+                compareByDescending<AppInfo> { it.isPinned }
+                    .thenBy { it.label.lowercase() }
+            )
+        }
 
         sortedList
     }

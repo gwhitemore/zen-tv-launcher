@@ -22,6 +22,16 @@ class AppAdapter(
     var focusedPosition: Int = 0
         private set
 
+    var reorderingPackage: String? = null
+        private set
+
+    fun getApps(): List<AppInfo> = apps
+
+    fun setReorderingApp(pkg: String?) {
+        reorderingPackage = pkg
+        notifyDataSetChanged()
+    }
+
     fun updateApps(newApps: List<AppInfo>) {
         apps = newApps
         notifyDataSetChanged()
@@ -54,6 +64,13 @@ class AppAdapter(
                 binding.ivAppIcon.setImageResource(R.drawable.banner)
             }
 
+            // Move indicator badge
+            binding.tvReorderBadge.visibility = if (reorderingPackage == app.packageName) {
+                android.view.View.VISIBLE
+            } else {
+                android.view.View.GONE
+            }
+
             // TV Remote Click & Long Press
             binding.cardContainer.setOnClickListener {
                 onAppClick(app)
@@ -69,13 +86,12 @@ class AppAdapter(
                 if (hasFocus) {
                     focusedPosition = position
                     binding.tvAppTitle.isSelected = true
-
-                    // Apple TV: Luminous white plaque with crisp dark title
-                    binding.tvAppTitle.setTextColor(Color.parseColor("#0B0F19"))
+                    binding.tvAppTitle.setTextColor(Color.parseColor("#FFFFFF"))
+                    binding.tvAppTitle.animate().scaleX(1.08f).scaleY(1.08f).setDuration(160).start()
 
                     view.animate()
-                        .scaleX(1.18f)
-                        .scaleY(1.18f)
+                        .scaleX(1.15f)
+                        .scaleY(1.15f)
                         .translationZ(20f)
                         .setDuration(180)
                         .setInterpolator(springInterpolator)
@@ -84,7 +100,7 @@ class AppAdapter(
                     onAppFocus?.invoke(app, position)
 
                     // Glides the focused app card smoothly to the center of the screen
-                    val rv = view.parent as? RecyclerView
+                    val rv = view.parent?.parent as? RecyclerView ?: view.parent as? RecyclerView
                     rv?.let { recyclerView ->
                         val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
                         layoutManager?.let { lm ->
@@ -95,8 +111,8 @@ class AppAdapter(
                     }
                 } else {
                     binding.tvAppTitle.isSelected = false
-                    // Normal state: translucent frosted glass with white text
-                    binding.tvAppTitle.setTextColor(Color.parseColor("#E6FFFFFF"))
+                    binding.tvAppTitle.setTextColor(Color.parseColor("#B3FFFFFF"))
+                    binding.tvAppTitle.animate().scaleX(1.0f).scaleY(1.0f).setDuration(160).start()
 
                     view.animate()
                         .scaleX(1.0f)

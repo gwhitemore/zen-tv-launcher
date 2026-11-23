@@ -2,42 +2,70 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/cardContainer"
-    android:layout_width="134dp"
-    android:layout_height="164dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:layout_marginStart="14dp"
     android:layout_marginEnd="14dp"
-    android:layout_marginTop="16dp"
-    android:layout_marginBottom="16dp"
-    android:background="@drawable/bg_glass_card"
-    android:clickable="true"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="14dp">
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="4dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
 
-    <!-- App Icon -->
-    <ImageView
-        android:id="@+id/ivAppIcon"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_marginBottom="10dp"
-        android:scaleType="fitCenter"
-        tools:src="@drawable/banner"
-        tools:ignore="ContentDescription" />
+    <!-- Apple TV Glass Tile: The App Artwork Fills This Entire Box -->
+    <FrameLayout
+        android:id="@+id/cardContainer"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:background="@drawable/bg_glass_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:outlineProvider="background"
+        android:clipToOutline="true">
 
-    <!-- App Title -->
+        <!-- App Artwork (Fills the glass box edge-to-edge) -->
+        <ImageView
+            android:id="@+id/ivAppIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="6dp"
+            android:scaleType="fitCenter"
+            tools:src="@drawable/banner"
+            tools:ignore="ContentDescription" />
+
+        <!-- Move / Reorder Indicator Badge -->
+        <TextView
+            android:id="@+id/tvReorderBadge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="#E6000000"
+            android:fontFamily="sans-serif-bold"
+            android:gravity="center"
+            android:letterSpacing="0.08"
+            android:paddingTop="3dp"
+            android:paddingBottom="4dp"
+            android:text="◀ MOVE ▶"
+            android:textColor="#38BDF8"
+            android:textSize="10sp"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- App Title below the glass box -->
     <TextView
         android:id="@+id/tvAppTitle"
-        android:layout_width="match_parent"
+        android:layout_width="140dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:ellipsize="marquee"
         android:fontFamily="sans-serif-medium"
         android:gravity="center"
         android:marqueeRepeatLimit="marquee_forever"
         android:singleLine="true"
-        android:textColor="#E6FFFFFF"
+        android:textColor="#B3FFFFFF"
         android:textSize="13sp"
         tools:text="Netflix" />
 

@@ -17,6 +17,7 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.KeyEvent
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
 
     private var currentApps: List<AppInfo> = emptyList()
     private var currentGlowColor: Int = Color.TRANSPARENT
+    private var reorderingApp: AppInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -352,12 +354,86 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            // Interactive App Move Mode handler
+            if (reorderingApp != null) {
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        moveApp(reorderingApp!!, -1)
+                        return true
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        moveApp(reorderingApp!!, 1)
+                        return true
+                    }
+                    KeyEvent.KEYCODE_DPAD_CENTER,
+                    KeyEvent.KEYCODE_ENTER,
+                    KeyEvent.KEYCODE_BACK -> {
+                        stopReorderMode()
+                        return true
+                    }
+                }
+            }
+
+            // Quick Menu Key handler (remote Menu button)
+            if (event.keyCode == KeyEvent.KEYCODE_MENU) {
+                val focusedPos = adapter.focusedPosition
+                val focusedApp = adapter.getApps().getOrNull(focusedPos)
+                if (focusedApp != null && binding.rvApps.findFocus() != null) {
+                    showAppOptionsDialog(focusedApp)
+                    return true
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun moveApp(app: AppInfo, direction: Int) {
+        val list = adapter.getApps().toMutableList()
+        val index = list.indexOfFirst { it.packageName == app.packageName }
+        if (index == -1) return
+        val targetIndex = index + direction
+        if (targetIndex in 0 until list.size) {
+            val item = list.removeAt(index)
+            list.add(targetIndex, item)
+            prefs.saveCustomAppOrder(list.map { it.packageName })
+            adapter.updateApps(list)
+            binding.rvApps.post {
+                val holder = binding.rvApps.findViewHolderForAdapterPosition(targetIndex)
+                holder?.itemView?.findViewById<View>(R.id.cardContainer)?.requestFocus()
+            }
+        }
+    }
+
+    private fun startReorderMode(app: AppInfo) {
+        reorderingApp = app
+        adapter.setReorderingApp(app.packageName)
+        binding.tvHeroName.text = "Moving: ${app.label}"
+        binding.tvHeroMeta.text = "Press ◀ / ▶ on remote to reorder. Press SELECT when done."
+        Toast.makeText(this, "Use ◀ / ▶ to move ${app.label}. Press SELECT when done.", Toast.LENGTH_LONG).show()
+    }
+
+    private fun stopReorderMode() {
+        val app = reorderingApp
+        reorderingApp = null
+        adapter.setReorderingApp(null)
+        if (app != null) {
+            binding.tvHeroName.text = app.label
+            binding.tvHeroMeta.text = "Application · Installed"
+            Toast.makeText(this, "${app.label} position saved", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun showAppOptionsDialog(app: AppInfo) {
         val pinOption = if (app.isPinned) getString(R.string.unfavorite_app) else getString(R.string.favorite_app)
         val options = arrayOf(
             getString(R.string.launch_app),
+            "Move Left ◀",
+            "Move Right ▶",
+            "Interactive Move Mode ↔",
+            "Remove from Screen (Hide)",
             pinOption,
-            getString(R.string.hide_app),
             getString(R.string.app_info)
         )
 
@@ -366,7 +442,15 @@ class MainActivity : AppCompatActivity() {
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> launchApp(app)
-                    1 -> {
+                    1 -> moveApp(app, -1)
+                    2 -> moveApp(app, 1)
+                    3 -> startReorderMode(app)
+                    4 -> {
+                        prefs.hideApp(app.packageName)
+                        refreshApps()
+                        Toast.makeText(this, "${app.label} removed from screen", Toast.LENGTH_SHORT).show()
+                    }
+                    5 -> {
                         if (app.isPinned) {
                             prefs.unpinApp(app.packageName)
                         } else {
@@ -374,12 +458,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         refreshApps()
                     }
-                    2 -> {
-                        prefs.hideApp(app.packageName)
-                        refreshApps()
-                        Toast.makeText(this, "${app.label} hidden", Toast.LENGTH_SHORT).show()
-                    }
-                    3 -> openAppInfo(app.packageName)
+                    6 -> openAppInfo(app.packageName)
                 }
             }
             .show()
@@ -397,10 +476,48 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun showManageHiddenAppsDialog() {
+        val hiddenPkgs = prefs.getHiddenApps().toList()
+        if (hiddenPkgs.isEmpty()) {
+            Toast.makeText(this, "No apps are currently hidden", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val hiddenLabels = hiddenPkgs.map { pkg ->
+            try {
+                val ai = packageManager.getApplicationInfo(pkg, 0)
+                packageManager.getApplicationLabel(ai).toString()
+            } catch (e: Exception) {
+                pkg
+            }
+        }.toTypedArray()
+
+        val items = hiddenLabels.map { "Unhide $it" }.toMutableList()
+        items.add("Unhide All Apps")
+
+        AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+            .setTitle("Manage Hidden Apps")
+            .setItems(items.toTypedArray()) { _, which ->
+                if (which == items.size - 1) {
+                    prefs.clearAllHidden()
+                    refreshApps()
+                    Toast.makeText(this, "All apps restored to screen", Toast.LENGTH_SHORT).show()
+                } else {
+                    val pkgToUnhide = hiddenPkgs[which]
+                    prefs.unhideApp(pkgToUnhide)
+                    refreshApps()
+                    Toast.makeText(this, "${hiddenLabels[which]} restored", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .show()
+    }
+
     private fun showLauncherSettingsDialog() {
+        val hiddenCount = prefs.getHiddenApps().size
         val options = arrayOf(
             getString(R.string.choose_wallpaper),
-            "Unhide All Hidden Apps (${prefs.getHiddenApps().size} hidden)",
+            "Manage Removed / Hidden Apps ($hiddenCount hidden)",
+            "Reset App Order to Default",
             "Toggle 12h / 24h Clock",
             "Open Fire TV Settings"
         )
@@ -410,18 +527,19 @@ class MainActivity : AppCompatActivity() {
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> showWallpaperSelectionDialog()
-                    1 -> {
-                        prefs.clearAllHidden()
-                        refreshApps()
-                        Toast.makeText(this, "All apps unhidden", Toast.LENGTH_SHORT).show()
-                    }
+                    1 -> showManageHiddenAppsDialog()
                     2 -> {
+                        prefs.resetCustomAppOrder()
+                        refreshApps()
+                        Toast.makeText(this, "App order reset to default", Toast.LENGTH_SHORT).show()
+                    }
+                    3 -> {
                         prefs.use24Hour = !prefs.use24Hour
                         val format = if (prefs.use24Hour) getString(R.string.clock_format_24) else getString(R.string.clock_format_12)
                         binding.textClock.format12Hour = format
                         binding.textClock.format24Hour = format
                     }
-                    3 -> {
+                    4 -> {
                         startActivity(Intent(Settings.ACTION_SETTINGS).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         })

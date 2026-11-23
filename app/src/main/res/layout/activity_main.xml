@@ -236,8 +236,9 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvApps"
         android:layout_width="0dp"
-        android:layout_height="186dp"
-        android:layout_marginBottom="32dp"
+        android:layout_height="216dp"
+        android:layout_marginBottom="36dp"
+        android:clipChildren="false"
         android:clipToPadding="false"
         android:descendantFocusability="afterDescendants"
         android:orientation="horizontal"

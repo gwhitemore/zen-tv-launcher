@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Focused Apple TV Luminous Glass Plaque -->
+    <!-- Focused Apple TV Luminous Glass Plaque with Crisp White Border -->
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="#F5FFFFFF" />
+            <solid android:color="#40FFFFFF" />
             <corners android:radius="24dp" />
             <stroke
-                android:width="2.5dp"
-                android:color="#FFFFFF" />
+                android:width="3dp"
+                android:color="#FFFFFFFF" />
         </shape>
     </item>
 
     <!-- Normal Translucent Frosted Glass Card -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#26182538" />
+            <solid android:color="#26141E2E" />
             <corners android:radius="24dp" />
             <stroke
                 android:width="1.2dp"

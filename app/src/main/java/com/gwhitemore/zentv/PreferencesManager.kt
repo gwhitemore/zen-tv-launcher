@@ -18,6 +18,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_CUSTOM_WALLPAPER_PATH = "key_custom_wallpaper_path"
         private const val KEY_PINNED_APPS = "key_pinned_apps"
         private const val KEY_HIDDEN_APPS = "key_hidden_apps"
+        private const val KEY_CUSTOM_APP_ORDER = "key_custom_app_order"
         private const val KEY_USE_24_HOUR = "key_use_24_hour"
     }
 
@@ -63,6 +64,19 @@ class PreferencesManager(context: Context) {
 
     fun clearAllHidden() {
         prefs.edit().remove(KEY_HIDDEN_APPS).apply()
+    }
+
+    fun getCustomAppOrder(): List<String> {
+        val raw = prefs.getString(KEY_CUSTOM_APP_ORDER, null) ?: return emptyList()
+        return raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    }
+
+    fun saveCustomAppOrder(order: List<String>) {
+        prefs.edit().putString(KEY_CUSTOM_APP_ORDER, order.joinToString(",")).apply()
+    }
+
+    fun resetCustomAppOrder() {
+        prefs.edit().remove(KEY_CUSTOM_APP_ORDER).apply()
     }
 
     var use24Hour: Boolean
